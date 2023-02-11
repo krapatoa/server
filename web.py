@@ -24,12 +24,12 @@ def video():
     return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
-def camera_thread():
-    while True:
-        print('hej')
-        time.sleep(1)
-
-
-if os.getpid() == 1:
-    t = threading.Thread(target=camera_thread)
-    t.start()
+# def camera_thread():
+#     while True:
+#         print('hej')
+#         time.sleep(1)
+#
+#
+# if os.getpid() == 1:
+#     t = threading.Thread(target=camera_thread)
+#     t.start()
