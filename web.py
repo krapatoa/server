@@ -7,6 +7,9 @@ import cv2
 
 app = Flask(__name__)
 
+from multiprocessing import Manager
+manager = Manager()
+store = manager.dict()
 
 def get_frame():
     camera_port = 0
@@ -23,6 +26,9 @@ def get_frame():
 def video():
     return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/value')
+def value():
+    return store['value']
 
 # def camera_thread():
 #     while True:
