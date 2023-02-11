@@ -1,7 +1,12 @@
+import os
+import threading
+from datetime import time
+
 from flask import Flask, Response
 import cv2
 
 app = Flask(__name__)
+
 
 def get_frame():
     camera_port = 0
@@ -18,4 +23,13 @@ def get_frame():
 def video():
     return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-print(os.getpid())
+
+def camera_thread():
+    while True:
+        print('hej')
+        time.sleep(1)
+
+
+if os.getpid() == 1:
+    t = threading.Thread(target=camera_thread)
+    t.start()
