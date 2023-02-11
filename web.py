@@ -3,6 +3,9 @@ import cv2
 
 app = Flask(__name__)
 
+frame = None
+
+
 def camera():
     global frame
 
@@ -14,9 +17,12 @@ def camera():
         imgencode = cv2.imencode('.jpg', im)[1]
         frame = imgencode.tostring()
 
+
 def frame_response():
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+    global frame
+    yield (b'--frame\r\n'
+           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
 
 @app.route('/video')
 def video():
