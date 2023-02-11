@@ -5,35 +5,34 @@ import cv2
 
 app = Flask(__name__)
 
+camera: Optional[cv2.VideoCapture] = None
 frame: Optional[bytes] = None
 
 
-def start_camera():
-    print("Camera")
+def setup_camera():
+    global camera
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
+
+
+def get_frame():
+    global camera
     while True:
-        global frame
         retval, im = camera.read()
-        print("read")
         imgencode = cv2.imencode('.jpg', im)[1]
         frame = imgencode.tostring()
-
-
-def frame_response():
-    global frame
-    yield (b'--frame\r\n'
-           b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
 @app.route('/video')
 def video():
-    global frame
-    if frame is None:
-        abort(404)
-    return Response(frame_response(), mimetype='multipart/x-mixed-replace; boundary=frame')
+    global camera
+    if camera is None:
+        abort(503)
+    return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 if __name__ == '__main__':
+    setup_camera()
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
-    start_camera()
