@@ -1,18 +1,18 @@
-from flask import Flask, Response
+from typing import Optional
+
+from flask import Flask, Response, abort
 import cv2
 
 app = Flask(__name__)
 
-frame = None
+frame: Optional[bytes] = None
 
 
 def camera():
-    global frame
-
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
-
     while True:
+        global frame
         retval, im = camera.read()
         imgencode = cv2.imencode('.jpg', im)[1]
         frame = imgencode.tostring()
@@ -26,6 +26,9 @@ def frame_response():
 
 @app.route('/video')
 def video():
+    global frame
+    if frame is None:
+        abort(404)
     return Response(frame_response(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
