@@ -3,7 +3,6 @@ import cv2
 
 app = Flask(__name__)
 
-
 def get_frame():
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
@@ -18,3 +17,5 @@ def get_frame():
 @app.route('/video')
 def video():
     return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+print(os.getpid())
