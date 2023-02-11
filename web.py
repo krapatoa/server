@@ -8,12 +8,14 @@ app = Flask(__name__)
 frame: Optional[bytes] = None
 
 
-def camera():
+def start_camera():
+    print("Camera")
     camera_port = 0
     camera = cv2.VideoCapture(camera_port)
     while True:
         global frame
         retval, im = camera.read()
+        print("read")
         imgencode = cv2.imencode('.jpg', im)[1]
         frame = imgencode.tostring()
 
@@ -34,4 +36,4 @@ def video():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
-    camera()
+    start_camera()
