@@ -2,14 +2,11 @@ import os
 import threading
 from datetime import time
 
+import flask
 from flask import Flask, Response
 import cv2
 
 app = Flask(__name__)
-
-from multiprocessing import Manager
-manager = Manager()
-store = manager.dict()
 
 def get_frame():
     camera_port = 0
@@ -28,7 +25,7 @@ def video():
 
 @app.route('/value')
 def value():
-    return store['value']
+    return flask.current_app.__getattribute__('value')
 
 # def camera_thread():
 #     while True:
