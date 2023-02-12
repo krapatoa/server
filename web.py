@@ -1,38 +1,56 @@
-import os
-import threading
-from datetime import time
-
-import flask
-from flask import Flask, Response
 import cv2
+from flask import Flask
+from flask import make_response
+import threading
 
+img = []
+cap = None
 app = Flask(__name__)
+app_not_done = True
 
-def get_frame():
-    camera_port = 0
-    camera = cv2.VideoCapture(camera_port)
-    while True:
-        retval, im = camera.read()
-        imgencode = cv2.imencode('.jpg', im)[1]
-        frame = imgencode.tostring()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+@app.route('/image')
+def get_image():
+    retval, buffer = cv2.imencode('.jpg', img)
+    response = make_response(buffer.tobytes())
+    response.headers['Content-Type'] = 'image/jpeg'
+    return response
 
 
-@app.route('/video')
-def video():
-    return Response(get_frame(), mimetype='multipart/x-mixed-replace; boundary=frame')
+class CameraThread(threading.Thread):
+    def __init__(self, name):
+        threading.Thread.__init__(self)
+        self.name = name
 
-@app.route('/value')
-def value():
-    return flask.current_app.__getattribute__('value')
+    def run(self):
+        global img
+        global app_not_done
 
-# def camera_thread():
-#     while True:
-#         print('hej')
-#         time.sleep(1)
-#
-#
-# if os.getpid() == 1:
-#     t = threading.Thread(target=camera_thread)
-#     t.start()
+        print("+++++++++ SETTING UP CAMERA ++++++++")
+        cap = cv2.VideoCapture(0)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        cnt = 0
+        while(app_not_done):
+            # Capture frame-by-frame
+            ret, frame = cap.read()
+            if ret:
+                img = frame
+            else:
+                cnt += 1
+                if cnt < 4:
+                    print("Could not read camera")
+
+        # When everything done, release the capture
+        print("RELEASING CAMERA *******************")
+        cap.release()
+
+
+if __name__ == '__main__':
+    thrd = CameraThread('camera_thread')
+    thrd.daemon = True
+    thrd.start()
+
+    app.run(port=5000)
+
+    app_not_done = False
+    thrd.join()
